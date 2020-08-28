@@ -1,1 +1,1 @@
-# PayPass2.0
+# PayPass

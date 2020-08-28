@@ -1,4 +1,4 @@
-package com.example.root.techblue;
+package com.example.root.paypass;
 
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -31,73 +31,52 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Registrar extends AppCompatActivity {
-
-
-    private static  String URL = "http://mypentest.tk/xyz/ghi/abc/insert.php";
+    private static String URL = "API_URL";
 
     IntentFilter[] filters_register;
     String[][] techs_register;
     PendingIntent pendingIntent_register;
     private NfcAdapter adapter_register;
 
-
     private String card_id;
-    private EditText pass,user,confPass;
+    private EditText pass, user, confPass;
     private Button btn_register;
-
     private TextView aproximar;
-
-
-
-
-
     private AlertDialog.Builder builder;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registrar);
 
-
-
-        pendingIntent_register = PendingIntent.getActivity(this,0,
-                new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),0);
-
+        pendingIntent_register = PendingIntent.getActivity(this, 0,
+                new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
 
         IntentFilter mifare = new IntentFilter((NfcAdapter.ACTION_TECH_DISCOVERED));
-        filters_register = new IntentFilter[]{mifare};
-        techs_register = new String[][]{new String[] {NfcA.class.getName()}};
+        filters_register = new IntentFilter[] { mifare };
+        techs_register = new String[][] { new String[] { NfcA.class.getName() } };
         adapter_register = NfcAdapter.getDefaultAdapter(this);
 
-
-        aproximar = (TextView)findViewById(R.id.aproximar);
-        user = (EditText)findViewById(R.id.user_register);
-        pass = (EditText)findViewById(R.id.senha_register);
-        confPass = (EditText)findViewById(R.id.conf_senha);
-        btn_register = (Button)findViewById(R.id.btn_register);
+        aproximar = (TextView) findViewById(R.id.aproximar);
+        user = (EditText) findViewById(R.id.user_register);
+        pass = (EditText) findViewById(R.id.senha_register);
+        confPass = (EditText) findViewById(R.id.conf_senha);
+        btn_register = (Button) findViewById(R.id.btn_register);
 
         aproximar.setText("Aproxime seu cartão...");
-
 
         btn_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                if(pass.getText().toString().equals(confPass.getText().toString())) {
+                if (pass.getText().toString().equals(confPass.getText().toString())) {
                     insert();
-                }else{
+                } else {
                     alert("Senhas não correspondentes");
                 }
-
-
             }
         });
-
     }
-
-
-
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -109,18 +88,15 @@ public class Registrar extends AppCompatActivity {
         int signedInt = wrapped.getInt();
         long number = signedInt & 0xffffffffl;
 
-
         card_id = Long.toString(number);
         aproximar.setText("");
         alert("Ok");
-
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        adapter_register.enableForegroundDispatch(this,pendingIntent_register,filters_register,techs_register);
+        adapter_register.enableForegroundDispatch(this, pendingIntent_register, filters_register, techs_register);
     }
 
     @Override
@@ -129,74 +105,51 @@ public class Registrar extends AppCompatActivity {
         adapter_register.disableForegroundDispatch(this);
     }
 
-
-    protected void insert(){
-    final String id_user, usuario, senha;
-
-    id_user = card_id;
-    usuario = user.getText().toString();
-    senha = pass.getText().toString();
-
-
+    protected void insert() {
+        final String id_user, usuario, senha;
+        id_user = card_id;
+        usuario = user.getText().toString();
+        senha = pass.getText().toString();
 
         try {
-//String Request
             StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
-//ResponseListener
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(final String response) {
-
-
-                            if(response.equals("ok")){
+                            if (response.equals("ok")) {
                                 alert("Registrado com sucesso!!");
                                 Intent intent = new Intent(getApplicationContext(), Login.class);
                                 startActivity(intent);
-                            }else{
+                            } else {
                                 alert("Falha ao registrar-se");
                             }
-
-
                         }
                     }
-//ErrorListener
                     , new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
 
-                    alert("Error" + error.toString());
-                    error.printStackTrace();
-                }
-            })
-                    //Abrir chaves aqui
-            {
-// digitar get -> map
-
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError {
-                    Map<String, String> params = new HashMap<String, String>();
-//params.put(Key, value);
-                    params.put("id_user", id_user);
-                    params.put("usuario", usuario);
-                    params.put("senha", senha);
-                    return params;
-                }
-            };
-
+                            alert("Error" + error.toString());
+                            error.printStackTrace();
+                        }
+                    }) {
+                        @Override
+                        protected Map<String, String> getParams() throws AuthFailureError {
+                            Map<String, String> params = new HashMap<String, String>();
+                            params.put("id_user", id_user);
+                            params.put("usuario", usuario);
+                            params.put("senha", senha);
+                            return params;
+                        }
+                    };
 
             MySingleton.getInstance(Registrar.this).addToRequestQueue(stringRequest);
-
-
-        }catch (Exception ex){
-            Toast.makeText(getApplicationContext(), "Erro Catch" + ex.toString(), Toast.LENGTH_LONG).show();
+        } catch (Exception ex) {
+           alert("Erro Catch" + ex.toString())
         }
     }
 
-
-
-
-
-    private void alert(String msg){
+    private void alert(String msg) {
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }
